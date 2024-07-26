@@ -29,22 +29,23 @@ def print_ascii_art():
 def Weather():
     ip = Get_IP()
     example_url ="http://api.weatherapi.com/v1/current.json?key="+Api_Key+"&q=" + ip
-    Ans = r.get(example_url)
 
-    if(Ans.status_code != 200):
-        print("Couldn't fetch Data, Please Try Again")
-        sys.exit()
+    try :
+        Ans = r.get(example_url)
+    except requests.exceptions.RequestException as e:
+        print(f"Error Getting to {url}: {e}")
+        raise sys.exit(e)
 
     Temperature = Ans.json()['current']['temp_c']
     Condition = Ans.json()['current']['condition']['text']
     print (Temperature,Condition)
 
 def Get_IP():
-    Address = r.get('http://checkip.dyndns.com/')
-
-    if(Address.status_code != 200):
-        print("Couldn't fetch Data, Please Try Again")
-        sys.exit()
+    try : 
+        Address = r.get('http://checkip.dyndns.com/')
+    except requests.exceptions.RequestException as e:
+        print(f"Error Getting to {url}: {e}")
+        raise sys.exit(e)
 
     return re.compile(r'Address: (\d+\.\d+\.\d+\.\d+)').search(Address.text).group(1)
 
