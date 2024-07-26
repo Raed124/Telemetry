@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+from api_key import Api_Key
+import requests as r 
+import re 
+import psutil 
+from psutil._common import bytes2human
+import os
+import datetime
+import speedtest 
+import sys
+
+from colorama import Fore , Style
+
+def print_ascii_art():
+
+    art = """
+ _____ _____ _      ________  ___ _____ _____________   __
+|_   _|  ___| |    |  ___|  \/  ||  ___|_   _| ___ \ \ / /
+  | | | |__ | |    | |__ | .  . || |__   | | | |_/ /\ V / 
+  | | |  __|| |    |  __|| |\/| ||  __|  | | |    /  \ /  
+  | | | |___| |____| |___| |  | || |___  | | | |\ \  | |  
+  \_/ \____/\_____/\____/\_|  |_/\____/  \_/ \_| \_| \_/  
+
+
+        """
+    print(Fore.GREEN + Style.DIM + art)
+
+
+def Weather():
+    ip = Get_IP()
+    example_url ="http://api.weatherapi.com/v1/current.json?key="+Api_Key+"&q=" + ip
+    Ans = r.get(example_url)
+
+    if(Ans.status_code != 200):
+        print("Couldn't fetch Data, Please Try Again")
+        sys.exit()
+
+    Temperature = Ans.json()['current']['temp_c']
+    Condition = Ans.json()['current']['condition']['text']
+    print (Temperature,Condition)
+
+def Get_IP():
+    Address = r.get('http://checkip.dyndns.com/')
+
+    if(Address.status_code != 200):
+        print("Couldn't fetch Data, Please Try Again")
+        sys.exit()
+
+    return re.compile(r'Address: (\d+\.\d+\.\d+\.\d+)').search(Address.text).group(1)
+
+def Memory():
+    mem = psutil.virtual_memory()
+    Percent = mem[2]
+    print (f"Memory Usage : {Percent} %")
+
+def Disk():
+    Disk = psutil.disk_usage('/') 
+    Usage = int(Disk.percent)
+    print (f"Disk Usage : {Usage} %") 
+
+def Network_Speed(Up : bool = False):
+    servers = []
+    threads = 1
+    s = speedtest.Speedtest()
+    s.get_best_server()
+    Download = s.download(threads=threads)
+    Upload = s.upload(threads=threads)
+    download_mbs = round(Download / (10**6), 2)
+    upload_mbs = round(Upload / (10**6), 2)
+    if(Up == True):
+        print (f'Dow : {download_mbs}Mbits/ Up : {upload_mbs}Mbits')
+    else: 
+        print (f'Dow : {download_mbs}Mbits')
+
+def Time_Date():
+    Date_Time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M') 
+    print (Date_Time)
+
+
+def menu():
+    print_ascii_art()
+    print("1. Get Weather")
+    print("2. Get Memory")
+    print("3. Get Disk")
+    print("4. Get Network Speed")
+    print("5. Get Time And Date")
+    print("6. Exit")
+    choice = input("Enter your choice: ")
+    return choice
+
+def main():
+    try:
+        while True:
+            choice = menu()
+            if choice == '1':
+                Weather()
+            elif choice == '2':
+                Memory()
+            elif choice == '3':
+                Disk()
+            elif choice == '4':
+                Network_Speed()
+            elif choice =='5':
+                Time_Date()
+            elif choice == '6':
+                print("Exiting...")
+                sys.exit()
+            else:
+                print("Invalid choice. Please try again.")
+    except KeyboardInterrupt:
+        print("\nDownload interrupted. Exiting...")
+if __name__ == "__main__":
+    main()
